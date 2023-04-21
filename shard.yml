@@ -1,0 +1,18 @@
+name: pwcme-desk-import
+version: 1.0.0
+
+dependencies:
+  # PlaceOS API integration
+  placeos:
+    github: placeos/crystal-client
+    branch: master
+
+  connect-proxy:
+    github: spider-gazelle/connect-proxy
+
+# compile target
+targets:
+  import_bookings:
+    main: src/import_bookings.cr
+  import_desks:
+    main: src/import_desks.cr

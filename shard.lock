@@ -1,0 +1,170 @@
+version: 2.0
+shards:
+  CrystalEmail:
+    git: https://github.com/place-labs/crystalemail.git
+    version: 0.2.6
+
+  action-controller:
+    git: https://github.com/spider-gazelle/action-controller.git
+    version: 5.6.4
+
+  active-model:
+    git: https://github.com/spider-gazelle/active-model.git
+    version: 4.3.1
+
+  backtracer:
+    git: https://github.com/sija/backtracer.cr.git
+    version: 1.2.2
+
+  bindata:
+    git: https://github.com/spider-gazelle/bindata.git
+    version: 1.11.1
+
+  connect-proxy:
+    git: https://github.com/spider-gazelle/connect-proxy.git
+    version: 2.0.0
+
+  csuuid:
+    git: https://github.com/wyhaines/csuuid.cr.git
+    version: 1.0.0+git.commit.812ee5e1252b27ee2895ec7897094cde3e4a5dc2
+
+  db:
+    git: https://github.com/crystal-lang/crystal-db.git
+    version: 0.11.0
+
+  debug:
+    git: https://github.com/sija/debug.cr.git
+    version: 2.0.2
+
+  defined:
+    git: https://github.com/wyhaines/defined.cr.git
+    version: 0.3.6
+
+  eventbus:
+    git: https://github.com/spider-gazelle/eventbus.git
+    version: 0.9.9+git.commit.086b2ba92475b88e8481b0387eb56c735cbfd7bd
+
+  exception_page:
+    git: https://github.com/crystal-loot/exception_page.git
+    version: 0.3.0
+
+  future:
+    git: https://github.com/crystal-community/future.cr.git
+    version: 1.0.0
+
+  habitat:
+    git: https://github.com/luckyframework/habitat.git
+    version: 0.4.7
+
+  hot_topic:
+    git: https://github.com/jgaskins/hot_topic.git
+    version: 0.1.0+git.commit.c4577d949221d535f29162343bf503b578308954
+
+  http-params-serializable:
+    git: https://github.com/place-labs/http-params-serializable.git
+    version: 0.5.0
+
+  json-merge-patch:
+    git: https://github.com/caspiano/json-merge-patch.git
+    version: 0.1.1
+
+  json-schema:
+    git: https://github.com/spider-gazelle/json-schema.git
+    version: 1.3.0
+
+  jwt:
+    git: https://github.com/crystal-community/jwt.git
+    version: 1.6.0
+
+  lucky_router:
+    git: https://github.com/luckyframework/lucky_router.git
+    version: 0.5.2
+
+  nbchannel:
+    git: https://github.com/wyhaines/nbchannel.cr.git
+    version: 0.1.0+git.commit.ea6517a837270361695244d14c4b03d84660f113
+
+  neuroplastic:
+    git: https://github.com/spider-gazelle/neuroplastic.git
+    version: 1.13.0
+
+  open_api:
+    git: https://github.com/elbywan/open_api.cr.git
+    version: 1.3.0
+
+  openapi-generator:
+    git: https://github.com/place-labs/openapi-generator.git
+    version: 2.1.0+git.commit.a65ffc2f7dcc6a393e7d1f9229650b520d9525be
+
+  openssl_ext:
+    git: https://github.com/spider-gazelle/openssl_ext.git
+    version: 2.3.0
+
+  opentelemetry-api:
+    git: https://github.com/wyhaines/opentelemetry-api.cr.git
+    version: 0.5.0
+
+  opentelemetry-instrumentation:
+    git: https://github.com/wyhaines/opentelemetry-instrumentation.cr.git
+    version: 0.5.1+git.commit.d698621cdc7722475e56e6dd8a7c07272432f270
+
+  opentelemetry-sdk:
+    git: https://github.com/wyhaines/opentelemetry-sdk.cr.git
+    version: 0.6.1
+
+  pars:
+    git: https://github.com/spider-gazelle/pars.git
+    version: 1.1.0
+
+  parse_date:
+    git: https://github.com/wyhaines/parsedate.cr.git
+    version: 0.1.2
+
+  pg:
+    git: https://github.com/will/crystal-pg.git
+    version: 0.26.0
+
+  pg-orm:
+    git: https://github.com/spider-gazelle/pg-orm.git
+    version: 1.0.0+git.commit.648bbb3af8917adcc868788d19d705e7811352dc
+
+  placeos:
+    git: https://github.com/placeos/crystal-client.git
+    version: 2.7.3+git.commit.f65691ccbeb595621c016a9566cf4045b28ced98
+
+  placeos-log-backend:
+    git: https://github.com/place-labs/log-backend.git
+    version: 0.11.0
+
+  placeos-models:
+    git: https://github.com/placeos/models.git
+    version: 9.0.4
+
+  pool:
+    git: https://github.com/ysbaddaden/pool.git
+    version: 0.2.4
+
+  protobuf:
+    git: https://github.com/jeromegn/protobuf.cr.git
+    version: 2.3.0
+
+  redis:
+    git: https://github.com/stefanwille/crystal-redis.git
+    version: 2.9.1
+
+  retriable:
+    git: https://github.com/sija/retriable.cr.git
+    version: 0.2.4
+
+  splay_tree_map:
+    git: https://github.com/wyhaines/splay_tree_map.cr.git
+    version: 0.2.2
+
+  time-ext:
+    git: https://github.com/wyhaines/time-ext.cr.git
+    version: 0.1.0+git.commit.175f658235fb6cdc9c804cb96da510fec27f4cd6
+
+  tracer:
+    git: https://github.com/wyhaines/tracer.cr.git
+    version: 0.3.1
+
