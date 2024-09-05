@@ -16,3 +16,5 @@ targets:
     main: src/import_bookings.cr
   import_desks:
     main: src/import_desks.cr
+  import_modules:
+    main: src/import_modules.cr
