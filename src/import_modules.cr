@@ -255,8 +255,8 @@ puts "Locating required drivers"
 
 DRIVER_MAPPINGS = {
   /crestron\s+cen/i => "Crestron Occupancy Sensor",
-  /display\s+.*crestron\s+dm/i => "Crestron NVX Receiver",
-  /crestron\s+dm/i => "Crestron NVX Transmitter",
+  /display\s+.*crestron\s+dm(?!.*dante)/i => "Crestron NVX Receiver",
+  /crestron\s+dm(?!.*dante)/i => "Crestron NVX Transmitter",
   # don't create a driver for the dante ip's
   /sys\s+core(?!.*dante)/i => "QSC Audio DSP",
   /aver/i => "Aver 520 Pro Camera",
