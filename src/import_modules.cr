@@ -377,6 +377,7 @@ rooms.each do |(building_name, level_idx, room_idx), system|
 
     # logic modules automatically added to systems
     client.modules.create(driver.id, control_system_id: system.id)
+    mod_added += 1
   end
 end
 
