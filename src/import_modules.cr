@@ -20,7 +20,7 @@ module Extract
       level = match["level"].to_i
       room = match["room"].to_i
 
-      {building, level, room}
+      return {building, level, room}
     end
     {nil, nil, nil}
   end
@@ -34,8 +34,8 @@ module Extract
 end
 
 # defaults if you don't want to use command line options
-api_key = "4abedae4e97dced85219feb2f0f1"
-place_domain = "http://my.placeos.domain"
+api_key = "heRxMB3c"
+place_domain = "https://placeos-dev.cdu.edu.au"
 csv_file = ""
 
 # Command line options
@@ -101,7 +101,9 @@ end
 
 puts "============================"
 puts "Loading file: #{csv_file}"
-csv = CSV.new(File.new(csv_file), headers: true, strip: true, separator: ',')
+# remove any byte order marks
+file_contents = File.read(csv_file).sub("\uFEFF", "")
+csv = CSV.new(file_contents, headers: true, strip: true, separator: ',')
 
 # Ignore the headers
 csv.next
@@ -169,9 +171,7 @@ building_entries.each do |building|
     b_zone.name == mapping[0] || b_zone.display_name == mapping[1]
   end
 
-  if zone
-    puts "   found building zone"
-  else
+  if zone.nil?
     puts "   building not found, creating zone"
     zone = client.zones.create(
       name: mapping[0],
@@ -195,9 +195,7 @@ level_entries.each do |(building_name, level_idx)|
     l_zone.name == level_name || l_zone.display_name == level_display
   end
 
-  if zone
-    puts "   found level zone"
-  else
+  if zone.nil?
     puts "   level not found, creating zone"
     zone = client.zones.create(
       name: level_name,
@@ -231,9 +229,7 @@ room_entries.each do |(building_name, level_idx, room_idx)|
     end
   end
 
-  if system
-    puts "   found room"
-  else
+  if system.nil?
     puts "   room not found, creating room"
     system = client.systems.create(
       name: room_name,
@@ -242,7 +238,7 @@ room_entries.each do |(building_name, level_idx, room_idx)|
       bookable: true,
       timezone: TIMEZONE
     )
-    client.systems.update(system.id, system.version, support_url: "https://placeos.cdu.edu.au/control/#/tabbed/#{system.id}")
+    system = client.systems.update(system.id, system.version, support_url: "https://placeos.cdu.edu.au/control/#/tabbed/#{system.id}")
     systems_added += 1
   end
   rooms[{building_name, level_idx, room_idx}] = system
@@ -258,7 +254,8 @@ DRIVER_MAPPINGS = {
   /crestron\s+cen/i => "Crestron Occupancy Sensor",
   /display\s+.*crestron\s+dm/i => "Crestron NVX Receiver",
   /crestron\s+dm/i => "Crestron NVX Transmitter",
-  /sys\s+core/i => "QSC Audio DSP",
+  # don't create a driver for the dante ip's
+  /sys\s+core(?!.*dante)/i => "QSC Audio DSP",
   /aver/i => "Aver 520 Pro Camera",
   /kramer\s+rc/i => "Kramer RC-308 Key Pad",
   # /kramer\s+kt/i => "touch panel",
@@ -320,14 +317,15 @@ entries.each do |entry|
 
   # check if module already exists
   ip_uri = ""
+  port = driver.default_port
 
   config = case driver.role
   when .ssh?, .device?
     ip_uri = entry.ip
   when .service?, .websocket?
-    uri = URI.parse(driver.default_uri)
-    uri.host = entry.ip
-    uri
+    fallback = driver.role.websocket? ? "ws://test.com" : "http://test.com"
+    ip_uri = URI.parse(driver.default_uri || fallback)
+    ip_uri.host = entry.ip
   else
     puts "   invalid driver role: #{driver.role}"
     exit 4
@@ -340,14 +338,22 @@ entries.each do |entry|
 
   next if mod
 
-  puts "   creating module"
-  mod = if ip_uri.is_a?(URI)
-    client.modules.create(driver.id, uri: ip_uri.to_s, notes: desc)
-  else
-    client.modules.create(driver.id, ip: ip_uri.to_s, notes: desc)
+  begin
+    puts "   creating module"
+    mod = if ip_uri.is_a?(URI)
+      client.modules.create(driver.id, uri: ip_uri.to_s, notes: desc)
+    else
+      client.modules.create(driver.id, ip: ip_uri.to_s, port: port, notes: desc)
+    end
+    modules << mod
+    mod_added += 1
+
+    system = client.systems.update(system.id, system.version, modules: modules.map(&.id))
+    rooms[{entry.building, entry.level, entry.room}] = system
+  rescue error
+    puts "Failed to create: #{driver.name} #{ip_uri} #{port} #{desc}"
+    raise error
   end
-  modules << mod
-  mod_added += 1
 end
 
 # ================================
@@ -369,6 +375,7 @@ rooms.each do |(building_name, level_idx, room_idx), system|
 
     puts "   creating module"
 
+    # logic modules automatically added to systems
     client.modules.create(driver.id, control_system_id: system.id)
   end
 end
