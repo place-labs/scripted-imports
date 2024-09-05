@@ -148,7 +148,7 @@ alias Zone = PlaceOS::Client::API::Models::Zone
 alias CtrlSystem = PlaceOS::Client::API::Models::System
 
 BUILDING_MAPPINGS = {
-  "ecp" => {"Education & Community Precinct", "ECP"}
+  "ecp" => {"Darwin City Precinct", "Darwin City"}
 }
 
 buildings = {} of String => Zone
@@ -189,10 +189,10 @@ level_entries.each do |(building_name, level_idx)|
   building_zone = buildings[building_name]
 
   level_name = "#{building_zone.display_name} Level #{level_idx}"
-  level_display = "#{building_zone.display_name}L#{level_idx}"
+  level_display = "#{building_zone.display_name} L#{level_idx}"
 
   zone = level_zones.find do |l_zone|
-    l_zone.name == level_name || l_zone.display_name == level_display
+    l_zone.name.downcase.starts_with?(level_name.downcase) || l_zone.display_name.try(&.downcase) == level_display.downcase
   end
 
   if zone.nil?
@@ -240,6 +240,9 @@ room_entries.each do |(building_name, level_idx, room_idx)|
     )
     system = client.systems.update(system.id, system.version, support_url: "https://placeos.cdu.edu.au/control/#/tabbed/#{system.id}")
     systems_added += 1
+  elsif !system.name.starts_with?(room_name)
+    puts "   updating room name: #{system.name} => #{room_name}"
+    system = client.systems.update(system.id, system.version, name: room_name, display_name: room_display)
   end
   rooms[{building_name, level_idx, room_idx}] = system
 end
@@ -270,13 +273,18 @@ LOGIC_DRIVERS = [
   "KNX Lighting",
 ]
 
+SHARED_DRIVERS = [
+  "KNX Connector",
+  "PlaceOS Staff API",
+]
+
 alias Driver = PlaceOS::Client::API::Models::Driver
 
 available_drivers = client.drivers.search(limit: 1000)
 driver_lookup = {} of String => Driver
 
 # ensure all required drivers have been added to the cluster
-(DRIVER_MAPPINGS.values + LOGIC_DRIVERS).each do |name|
+(DRIVER_MAPPINGS.values + LOGIC_DRIVERS + SHARED_DRIVERS).each do |name|
   puts " > looking for driver: #{name}"
   if driver = available_drivers.find { |check| check.name == name }
     driver_lookup[name] = driver
@@ -362,6 +370,8 @@ end
 puts "=============================="
 puts "Adding logic modules to systems"
 
+logic_added = 0
+
 rooms.each do |(building_name, level_idx, room_idx), system|
   room_id = "#{level_idx}.#{room_idx.to_s.rjust(2, '0')}"
   modules = existing_modules[system.id]
@@ -377,7 +387,46 @@ rooms.each do |(building_name, level_idx, room_idx), system|
 
     # logic modules automatically added to systems
     client.modules.create(driver.id, control_system_id: system.id)
-    mod_added += 1
+    logic_added += 1
+  end
+end
+
+# ================================
+# Add shared modules
+# ================================
+puts "=============================="
+puts "Searching for shared modules"
+
+shared_added = 0
+
+# driver name => module id
+shared_modules = Hash(String, Module).new do |hash, name|
+  driver = driver_lookup[name]
+  modules = client.modules.search(driver_id: driver.id)
+  puts "   missing shared module for driver: #{name}" if modules.empty?
+  hash[name] = modules.first
+end
+
+rooms.each do |(building_name, level_idx, room_idx), system|
+  room_id = "#{level_idx}.#{room_idx.to_s.rjust(2, '0')}"
+
+  # fetching system ID as the cached one will not be up to date
+  system = client.systems.fetch(system.id)
+
+  SHARED_DRIVERS.each do |name|
+    puts " > checking #{name} in #{building_name} #{room_id}"
+    mod = shared_modules[name]
+    mod_id = system.modules.find { |e_mod| e_mod == mod.id }
+
+    next if mod_id
+
+    puts "   adding module"
+
+    # logic modules automatically added to systems
+    modules = system.modules
+    modules << mod.id
+    system = client.systems.update(system.id, system.version, modules: modules)
+    shared_added += 1
   end
 end
 
@@ -387,6 +436,8 @@ puts "=============================="
 
 puts "zones created: #{zones_added}"
 puts "systems created: #{systems_added}"
-puts "modules created: #{mod_added}"
+puts "device modules created: #{mod_added}"
+puts "logic modules created: #{logic_added}"
+puts "shared modules added: #{shared_added}"
 puts "modules skipped: #{mod_no_match} (unknown driver)"
 puts "modules checked: #{mod_checked}"
