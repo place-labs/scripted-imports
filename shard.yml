@@ -18,3 +18,5 @@ targets:
     main: src/import_desks.cr
   import_modules:
     main: src/import_modules.cr
+  import_schedules:
+    main: src/import_schedules.cr
