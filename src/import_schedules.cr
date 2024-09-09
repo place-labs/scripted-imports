@@ -213,6 +213,11 @@ room_entries.each do |(level_idx, room_idx)|
     systems_added += 1
   elsif !system.name.starts_with?(room_name) || system.email != email
     puts "   updating room email: #{room_name} => #{email}"
+    if system.name.starts_with?(room_name)
+      # don't change name if not required
+      room_name = system.name
+      room_display = system.display_name
+    end
     system = client.systems.update(system.id, system.version, name: room_name, display_name: room_display, email: email)
   end
   rooms[{level_idx, room_idx}] = system
