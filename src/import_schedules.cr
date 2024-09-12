@@ -4,10 +4,10 @@ require "uuid"
 require "set"
 require "csv"
 
-ORG = "Charles Darwin University"
+ORG       = "Charles Darwin University"
 ORG_REGEX = /#{ORG}/i
-TIMEZONE = "Australia/Darwin"
-BUILDING = "Darwin City"
+TIMEZONE  = "Australia/Darwin"
+BUILDING  = "Darwin City"
 
 module Extract
   extend self
@@ -229,12 +229,13 @@ end
 puts "========================="
 puts "Locating required drivers"
 
-LOGIC_DRIVERS = [
-  "PlaceOS Room Events",
-]
+LOGIC_DRIVERS = {
+  "graph"  => ["PlaceOS Room Events", "Booking to System Logic Module"],
+  "booker" => ["PlaceOS Room Events", "Booking to System Resource Booker Logic Module"],
+}
 
 SHARED_DRIVERS = {
-  "graph" => "Microsoft Graph API",
+  "graph"  => "Microsoft Graph API",
   "booker" => "Syllabus Plus Resource Booker",
 }
 
@@ -244,7 +245,7 @@ available_drivers = client.drivers.search(limit: 1000)
 driver_lookup = {} of String => Driver
 
 # ensure all required drivers have been added to the cluster
-(LOGIC_DRIVERS + SHARED_DRIVERS.values).each do |name|
+(LOGIC_DRIVERS.values.flatten.uniq! + SHARED_DRIVERS.values).each do |name|
   puts " > looking for driver: #{name}"
   if driver = available_drivers.find { |check| check.name == name }
     driver_lookup[name] = driver
@@ -266,6 +267,7 @@ alias Module = PlaceOS::Client::API::Models::Module
 existing_modules = Hash(String, Array(Module)).new { |hash, sys_id| hash[sys_id] = client.modules.search(limit: 1000, control_system_id: sys_id) }
 mod_checked = 0
 shared_added = 0
+logic_added = 0
 
 # driver name => module id
 shared_modules = Hash(String, Module).new do |hash, name|
@@ -304,23 +306,11 @@ entries.each do |entry|
 
   modules = system.modules
   modules << mod.id
-  client.systems.update(system.id, system.version, modules: modules)
+  system = client.systems.update(system.id, system.version, modules: modules)
   shared_added += 1
-end
 
-# ================================
-# Add logic to systems
-# ================================
-puts "=============================="
-puts "Adding logic modules to systems"
-
-logic_added = 0
-
-rooms.each do |(level_idx, room_idx), system|
-  room_id = "#{level_idx}.#{room_idx.to_s.rjust(2, '0')}"
   modules = existing_modules[system.id]
-
-  LOGIC_DRIVERS.each do |name|
+  LOGIC_DRIVERS[room_type].each do |name|
     puts " > checking #{name} in #{room_id}"
     driver = driver_lookup[name]
     mod = modules.find { |e_mod| e_mod.driver_id == driver.id }
