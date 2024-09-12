@@ -4,10 +4,10 @@ require "uuid"
 require "set"
 require "csv"
 
-ORG       = "Charles Darwin University"
+ORG       = "Your Org Zone Name"
 ORG_REGEX = /#{ORG}/i
 TIMEZONE  = "Australia/Darwin"
-BUILDING  = "Darwin City"
+BUILDING  = "Building Name"
 
 module Extract
   extend self
@@ -29,7 +29,7 @@ end
 
 # defaults if you don't want to use command line options
 api_key = "MB3c"
-place_domain = "https://placeos-dev.cdu.edu.au"
+place_domain = "https://placeos.au"
 csv_file = "resource_booker_ids.csv"
 
 # Command line options

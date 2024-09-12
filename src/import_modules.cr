@@ -3,9 +3,9 @@ require "placeos"
 require "set"
 require "csv"
 
-ORG = "Charles Darwin University"
+ORG       = "Your Org Zone Name"
 ORG_REGEX = /#{ORG}/i
-TIMEZONE = "Australia/Darwin"
+TIMEZONE  = "Australia/Darwin"
 
 module Extract
   extend self
@@ -34,9 +34,9 @@ module Extract
 end
 
 # defaults if you don't want to use command line options
-api_key = "heRxMB3c"
-place_domain = "https://placeos-dev.cdu.edu.au"
-csv_file = ""
+api_key = "501"
+place_domain = "https://placeos.au"
+csv_file = "lvl_5.csv"
 
 # Command line options
 OptionParser.parse do |parser|
@@ -148,7 +148,7 @@ alias Zone = PlaceOS::Client::API::Models::Zone
 alias CtrlSystem = PlaceOS::Client::API::Models::System
 
 BUILDING_MAPPINGS = {
-  "ecp" => {"Darwin City Precinct", "Darwin City"}
+  "code" => {"Building Name", "Display Name"},
 }
 
 buildings = {} of String => Zone
@@ -254,13 +254,13 @@ puts "========================="
 puts "Locating required drivers"
 
 DRIVER_MAPPINGS = {
-  /crestron\s+cen/i => "Crestron Occupancy Sensor",
+  /crestron\s+cen/i                       => "Crestron Occupancy Sensor",
   /display\s+.*crestron\s+dm(?!.*dante)/i => "Crestron NVX Receiver",
-  /crestron\s+dm(?!.*dante)/i => "Crestron NVX Transmitter",
+  /crestron\s+dm(?!.*dante)/i             => "Crestron NVX Transmitter",
   # don't create a driver for the dante ip's
   /sys\s+core(?!.*dante)/i => "QSC Audio DSP",
-  /aver/i => "Aver 520 Pro Camera",
-  /kramer\s+rc/i => "Kramer RC-308 Key Pad",
+  /aver/i                  => "Aver 520 Pro Camera",
+  /kramer\s+rc/i           => "Kramer RC-308 Key Pad",
   # /kramer\s+kt/i => "touch panel",
   # /LabGruppen/i => "?",
   /samsung\s+lh/i => "Samsung Simplified Control Set",
@@ -328,16 +328,16 @@ entries.each do |entry|
   port = driver.default_port
 
   config = case driver.role
-  when .ssh?, .device?
-    ip_uri = entry.ip
-  when .service?, .websocket?
-    fallback = driver.role.websocket? ? "ws://test.com" : "http://test.com"
-    ip_uri = URI.parse(driver.default_uri || fallback)
-    ip_uri.host = entry.ip
-  else
-    puts "   invalid driver role: #{driver.role}"
-    exit 4
-  end
+           when .ssh?, .device?
+             ip_uri = entry.ip
+           when .service?, .websocket?
+             fallback = driver.role.websocket? ? "ws://test.com" : "http://test.com"
+             ip_uri = URI.parse(driver.default_uri || fallback)
+             ip_uri.host = entry.ip
+           else
+             puts "   invalid driver role: #{driver.role}"
+             exit 4
+           end
 
   modules = existing_modules[system.id]
   mod = modules.find do |e_mod|
@@ -349,10 +349,10 @@ entries.each do |entry|
   begin
     puts "   creating module"
     mod = if ip_uri.is_a?(URI)
-      client.modules.create(driver.id, uri: ip_uri.to_s, notes: desc)
-    else
-      client.modules.create(driver.id, ip: ip_uri.to_s, port: port, notes: desc)
-    end
+            client.modules.create(driver.id, uri: ip_uri.to_s, notes: desc)
+          else
+            client.modules.create(driver.id, ip: ip_uri.to_s, port: port, notes: desc)
+          end
     modules << mod
     mod_added += 1
 
